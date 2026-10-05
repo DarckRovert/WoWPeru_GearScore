@@ -46,10 +46,13 @@ function GearScore_OnEvent(GS_Nil, GS_EventName, GS_Prefix, GS_AddonMessage, GS_
 	if ( GS_EventName == "CHAT_MSG_CHANNEL" ) then
 	    local Who = GS_AddonMessage; local Message = GS_Prefix; local ExtraMessage = ""; local ColorClass = ""; local Channel = GS_Sender
 	    if GS_Data[GetRealmName()].Players[Who] then
-            ColorClass = "|cff"..string.format("%02x%02x%02x", GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Who].Class]].Red * 255, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Who].Class]].Green * 255, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Who].Class]].Blue * 255)
-			local Red, Green, Blue = GearScore_GetQuality(GS_Data[GetRealmName()].Players[Who].GearScore)
+	        local pWho = GS_Data[GetRealmName()].Players[Who]
+	        local cClass = pWho and pWho.Class
+	        local cInfo = (cClass and GS_Classes[cClass] and GS_ClassInfo[GS_Classes[cClass]]) or GS_ClassInfo["Warrior"] or { Red = 1, Green = 1, Blue = 1 }
+            ColorClass = "|cff"..string.format("%02x%02x%02x", cInfo.Red * 255, cInfo.Green * 255, cInfo.Blue * 255)
+			local Red, Green, Blue = GearScore_GetQuality(pWho.GearScore or 0)
 			local ColorGearScore = "|cff"..string.format("%02x%02x%02x", Red * 255, Blue * 255, Green * 255)
-            ExtraMessage = "("..ColorGearScore..tostring(GS_Data[GetRealmName()].Players[Who].GearScore).."|r)" ;
+            ExtraMessage = "("..ColorGearScore..tostring(pWho.GearScore or 0).."|r)" ;
 
 		end
 
@@ -193,9 +196,9 @@ function GearScore_ComposeRecord(tbl, GS_Sender)
 	for i = 12, 30 do
 		if ( i ~= 15 ) then Equip[i-11] = tbl[i]; end
 	end	
-	if ( GS_Data[GetRealmName()].Players[Name] ) then if ( GS_Data[GetRealmName()].Players[Name].StatString ) then local StatString = GS_Data[GetRealmName()].Players[Name].StatString; end end
-	GS_Data[GetRealmName()].Players[Name] = { ["Name"] = Name, ["GearScore"] = GearScore, ["PVP"] = 1, ["Level"] = tonumber(Level), ["Faction"] = Faction, ["Sex"] = Sex, ["Guild"] = Guild,
-    ["Race"] = Race, ["Class"] =  Class, ["Spec"] = 1, ["Location"] = Location, ["Scanned"] = Scanned, ["Date"] = Date, ["Average"] = Average, ["Equip"] = Equip, ["StatString"] = StatString}
+	local StatString = ( GS_Data[GetRealmName()].Players[Name] and GS_Data[GetRealmName()].Players[Name].StatString ) or nil
+	GS_Data[GetRealmName()].Players[Name] = { ["Name"] = Name, ["GearScore"] = GearScore or 0, ["PVP"] = 1, ["Level"] = tonumber(Level) or 80, ["Faction"] = Faction or "A", ["Sex"] = Sex or 1, ["Guild"] = Guild or "*",
+    ["Race"] = Race or "HU", ["Class"] =  Class or "WA", ["Spec"] = 1, ["Location"] = Location or "Unknown", ["Scanned"] = Scanned or "Unknown", ["Date"] = Date or GearScore_GetTimeStamp(), ["Average"] = Average or 0, ["Equip"] = Equip, ["StatString"] = StatString}
 end
 
 function GearScore_Prune()
@@ -272,16 +275,20 @@ function GearScore_GetScore(Name, Target)
 		--if ( GearScore < 0 ) and ( PVPScore < 0 ) then return 0, 0; end
 		--if ( PVPScore < 0 ) then PVPScore = 0; end
         --print(GearScore, PVPScore)
-		local __, RaceEnglish = UnitRace(Target);
-		local __, ClassEnglish = UnitClass(Target);
+		local localizedRace, RaceEnglish = UnitRace(Target);
+		local localizedClass, ClassEnglish = UnitClass(Target);
         local currentzone = GetZoneText()
         if not ( GS_Zones[currentzone] ) then 
-			--print("Alert! You have found a zone unknown to GearScore. Please report the zone '"..GetZoneText().." at gearscore.blogspot.com Thanks!"); 
 			currentzone = "Unknown Location"
 		end
         local GuildName = GetGuildInfo(Target); if not ( GuildName ) then GuildName = "*"; else GuildName = GuildName; end
-		GS_Data[GetRealmName()].Players[Name] = { ["Name"] = Name, ["GearScore"] = floor(GearScore), ["PVP"] = 1, ["Level"] = UnitLevel(Target), ["Faction"] = GS_Factions[UnitFactionGroup(Target)], ["Sex"] = UnitSex(Target), ["Guild"] = GuildName,
-        ["Race"] = GS_Races[RaceEnglish], ["Class"] =  GS_Classes[ClassEnglish], ["Spec"] = 1, ["Location"] = GS_Zones[currentzone], ["Scanned"] = UnitName("player"), ["Date"] = GearScore_GetTimeStamp(), ["Average"] = floor((LevelTotal / ItemCount)+0.5), ["Equip"] = TempEquip}
+        local pFaction = GS_Factions[UnitFactionGroup(Target)] or "A"
+        local pRace = GS_Races[RaceEnglish] or GS_Races[localizedRace] or "HU"
+        local pClass = GS_Classes[ClassEnglish] or GS_Classes[localizedClass] or "WA"
+        local pLoc = GS_Zones[currentzone] or currentzone or "Unknown Location"
+        local pAvg = (ItemCount > 0 and floor((LevelTotal / ItemCount)+0.5)) or 0
+		GS_Data[GetRealmName()].Players[Name] = { ["Name"] = Name, ["GearScore"] = floor(GearScore or 0), ["PVP"] = 1, ["Level"] = UnitLevel(Target) or 80, ["Faction"] = pFaction, ["Sex"] = UnitSex(Target) or 1, ["Guild"] = GuildName,
+        ["Race"] = pRace, ["Class"] =  pClass, ["Spec"] = 1, ["Location"] = pLoc, ["Scanned"] = UnitName("player") or "Unknown", ["Date"] = GearScore_GetTimeStamp(), ["Average"] = pAvg, ["Equip"] = TempEquip}
 	end
 end
 
@@ -309,7 +316,9 @@ function GearScore_EquipCompare(Tooltip, ItemScore, ItemSlot, GS_ItemLink)
 	for i,v in pairs(GSL_DataBase) do
  	local Difference = 0
 				--print( ItemSubType )
-			if ( GS_ClassInfo[GS_Classes[v.Class]].Equip[ItemSubType] ) or ( ItemEquipLoc == "INVTYPE_CLOAK" )  then
+			local cName = v.Class and GS_Classes[v.Class]
+			local cInfo = cName and GS_ClassInfo[cName]
+			if ( ( cInfo and cInfo.Equip and cInfo.Equip[ItemSubType] ) or ( ItemEquipLoc == "INVTYPE_CLOAK" ) ) then
 			    if ( ItemSlot == 18 ) and v.Class == "HU" then HunterMultiplier = 5.3224; end
 			    if ( ( ItemSlot == 17 ) or ( ItemSlot == 16 ) or ( ItemSlot == 36 ) ) and ( v.Class == "HU" ) then HunterMultiplier = 0.3164; end
 			    
@@ -405,21 +414,35 @@ function GearScore_Send(Name, Group, Target)
 		if ( GS_Settings["Developer"] ) then GS_TempVersion = ""; end
 			if ( Name ) and ( GS_Data[GetRealmName()].Players[Name] ) then
 				local A = GetRealmName()
-				GS_MessageA = GS_Data[A].Players[Name].Name.."$"..GS_Data[A].Players[Name].GearScore.."$"..GS_Data[A].Players[Name].Date.."$"..GS_Data[A].Players[Name].Class.."$"
-				GS_MessageB = GS_Data[A].Players[Name].Average.."$"..GS_Data[A].Players[Name].Race.."$"..GS_Data[A].Players[Name].Faction.."$"..GS_Data[A].Players[Name].Location.."$"
-				--GS_MessageC = GS_Data[A].Players[Name].Level.."$"..GS_Data[A].Players[Name].Sex.."$"..GS_Data[A].Players[Name].Guild.."$"..GS_Data[A].Players[Name].Scanned
-				GS_MessageC = GS_Data[A].Players[Name].Level.."$"..GS_Data[A].Players[Name].Guild.."$"..GS_Data[A].Players[Name].Scanned
-				--print( GS_MessageC )
+				local p = GS_Data[A].Players[Name]
+				local pName = p.Name or Name or "Unknown"
+				local pScore = p.GearScore or 0
+				local pDate = p.Date or GearScore_GetTimeStamp()
+				local pClass = p.Class or "WA"
+				local pAvg = p.Average or 0
+				local pRace = p.Race or "HU"
+				local pFaction = p.Faction or "A"
+				local pLoc = p.Location or "Unknown"
+				local pLevel = p.Level or 80
+				local pGuild = p.Guild or "*"
+				local pScanned = p.Scanned or UnitName("player") or "Unknown"
+				p.Race = pRace
+				p.Class = pClass
+				p.Faction = pFaction
+				GS_MessageA = pName.."$"..pScore.."$"..pDate.."$"..pClass.."$"
+				GS_MessageB = pAvg.."$"..pRace.."$"..pFaction.."$"..pLoc.."$"
+				GS_MessageC = pLevel.."$"..pGuild.."$"..pScanned
 				GS_MessageD = "$"
+				local equip = p.Equip or {}
 				for i = 1, 18 do
 					if ( i ~= 4 ) then
-						GS_MessageD = GS_MessageD..GS_Data[A].Players[Name].Equip[i].."$"
+						GS_MessageD = GS_MessageD..(equip[i] or "0:0").."$"
 					else
 					   	GS_MessageD = GS_MessageD.."0:0".."$"
 					end
 				end       
-			if ( strlen(GS_MessageA..GS_MessageB..GS_MessageC..GS_MessageD) >= 252 ) then GS_MessageC = GS_Data[A].Players[Name].Level.."$"..GS_Data[A].Players[Name].Guild.."$".." "; end
-			GS_Length = strlen(GS_MessageA..GS_MessageB..GS_MessageC..GS_MessageD);
+				if ( strlen(GS_MessageA..GS_MessageB..GS_MessageC..GS_MessageD) >= 252 ) then GS_MessageC = pLevel.."$"..pGuild.."$".." "; end
+				GS_Length = strlen(GS_MessageA..GS_MessageB..GS_MessageC..GS_MessageD);
 			end
 			if not ( GS_Length ) then return; end
 		if ( GS_Length ) and ( GS_Length < 252 ) then
@@ -576,11 +599,14 @@ if ( GS_Settings["CHAT"] == 1 ) then
 	    --print("A", GS_AddonMessage, "B", GS_Whisper, "C", GS_Sender)
 	    local Who = arg1; local Message = msg; local ExtraMessage = ""; local ColorClass = "";
 	    if GS_Data[GetRealmName()].Players[Who] then
-            ColorClass = "|cff"..string.format("%02x%02x%02x", GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Who].Class]].Red * 255, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Who].Class]].Green * 255, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Who].Class]].Blue * 255)
-			local Red, Green, Blue = GearScore_GetQuality(GS_Data[GetRealmName()].Players[Who].GearScore)
+	        local pWho = GS_Data[GetRealmName()].Players[Who]
+	        local cClass = pWho and pWho.Class
+	        local cInfo = (cClass and GS_Classes[cClass] and GS_ClassInfo[GS_Classes[cClass]]) or GS_ClassInfo["Warrior"] or { Red = 1, Green = 1, Blue = 1 }
+            ColorClass = "|cff"..string.format("%02x%02x%02x", cInfo.Red * 255, cInfo.Green * 255, cInfo.Blue * 255)
+			local Red, Green, Blue = GearScore_GetQuality(pWho.GearScore or 0)
 			local ColorGearScore = "|cff"..string.format("%02x%02x%02x", Red * 255, Blue * 255, Green * 255)
-            ExtraMessage = "("..ColorGearScore..tostring(GS_Data[GetRealmName()].Players[Who].GearScore).."|r): " ;
-            ExtraMessage = (ColorGearScore.."|Hplayer:X33"..Who.."|h("..tostring(GS_Data[GetRealmName()].Players[Who].GearScore)..")|h|r ")
+            ExtraMessage = "("..ColorGearScore..tostring(pWho.GearScore or 0).."|r): " ;
+            ExtraMessage = (ColorGearScore.."|Hplayer:X33"..Who.."|h("..tostring(pWho.GearScore or 0)..")|h|r ")
 
 		end
 
@@ -848,21 +874,27 @@ function GearScore_DisplayUnit(Name, Auto)
     			if ( ItemTexture ) then backdrop = { bgFile = ItemTexture }; _G["GS_Frame"..i]:SetBackdrop(backdrop); else backdrop = { bgFile = GS_TextureFiles[i] }; _G["GS_Frame"..i]:SetBackdrop(backdrop);end
 			end
 		end
-	    GS_InfoText:SetText(GS_Data[GetRealmName()].Players[Name].Level.." "..GS_Races[GS_Data[GetRealmName()].Players[Name].Race].." "..GS_Classes[GS_Data[GetRealmName()].Players[Name].Class])
-	    GS_InfoText:SetTextColor(GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Red, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Green, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Blue, 1)
-		GS_NameText:SetText(GS_Data[GetRealmName()].Players[Name].Name)
-	    GS_NameText:SetTextColor(GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Red, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Green, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Blue, 1)
-		Red, Green, Blue = GearScore_GetQuality(GS_Data[GetRealmName()].Players[Name].GearScore)
-		GS_GearScoreText:SetText("GearScore: "..GS_Data[GetRealmName()].Players[Name].GearScore)
+		local pPlayer = GS_Data[GetRealmName()].Players[Name]
+		local pRace = pPlayer and pPlayer.Race or "HU"
+		local pClass = pPlayer and pPlayer.Class or "WA"
+		local raceName = GS_Races[pRace] or pRace
+		local className = GS_Classes[pClass] or pClass
+		local classInfo = (className and GS_ClassInfo[className]) or GS_ClassInfo["Warrior"] or { Red = 1, Green = 1, Blue = 1 }
+	    GS_InfoText:SetText((pPlayer.Level or 80).." "..raceName.." "..className)
+	    GS_InfoText:SetTextColor(classInfo.Red, classInfo.Green, classInfo.Blue, 1)
+		GS_NameText:SetText(pPlayer.Name or Name)
+	    GS_NameText:SetTextColor(classInfo.Red, classInfo.Green, classInfo.Blue, 1)
+		Red, Green, Blue = GearScore_GetQuality(pPlayer.GearScore or 0)
+		GS_GearScoreText:SetText("GearScore: "..(pPlayer.GearScore or 0))
 		GS_GearScoreText:SetTextColor(Red,Blue,Green)
-		GS_GuildText:SetTextColor(GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Red, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Green, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Blue, 1)
-		GS_GuildText:SetText(GS_Data[GetRealmName()].Players[Name].Guild)
-		local Date, DateRed, DateGreen, DateBlue = GearScore_GetDate(GS_Data[GetRealmName()].Players[Name].Date)
+		GS_GuildText:SetTextColor(classInfo.Red, classInfo.Green, classInfo.Blue, 1)
+		GS_GuildText:SetText(pPlayer.Guild or "*")
+		local Date, DateRed, DateGreen, DateBlue = GearScore_GetDate(pPlayer.Date or 0)
 		ColorStringDate = "|cff"..string.format("%02x%02x%02x", DateRed * 255, DateGreen * 255, DateBlue * 255) 
 		local MyDateText = Date.." days ago"; if ( tonumber(Date) == 0 ) then MyDateText = "Today"; end
-		GS_DateText:SetText("Scanned "..ColorStringDate..MyDateText.."|r  by  "..GS_Data[GetRealmName()].Players[Name].Scanned)
-		GS_AverageText:SetText("Average ItemLevel:|cFFFFFFFF "..GS_Data[GetRealmName()].Players[Name].Average)
-		GS_LocationText:SetText(GS_Zones[GS_Data[GetRealmName()].Players[Name].Location])
+		GS_DateText:SetText("Scanned "..ColorStringDate..MyDateText.."|r  by  "..(pPlayer.Scanned or "Unknown"))
+		GS_AverageText:SetText("Average ItemLevel:|cFFFFFFFF "..(pPlayer.Average or 0))
+		GS_LocationText:SetText(GS_Zones[pPlayer.Location] or pPlayer.Location or "Unknown")
 		GearScore_UpdateRaidColors(Name)
 	else
 		GS_InfoText:SetText("")
@@ -1053,9 +1085,9 @@ function GearScore_DisplayDatabase(Group, SortType, Auto, GSX_StartPage)
 		if ( SortType == "iLevel" ) then GS_HighlightedColNum = 4; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return a.Average > b.Average end); else table.sort(GSX_DataBase, function(a, b) return a.Average < b.Average end); end; end
 		if ( SortType == "Level" ) then GS_HighlightedColNum = 5; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return tonumber(a.Level) > tonumber(b.Level) end); else table.sort(GSX_DataBase, function(a, b) return tonumber(a.Level) < tonumber(b.Level) end); end; end
 		if ( SortType == "Guild" ) then GS_HighlightedColNum = 8; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return a.Guild < b.Guild end); else table.sort(GSX_DataBase, function(a, b) return a.Guild > b.Guild end); end; end
-		if ( SortType == "Class" ) then GS_HighlightedColNum = 7; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return GS_Classes[a.Class] < GS_Classes[b.Class] end); else table.sort(GSX_DataBase, function(a, b) return GS_Classes[a.Class] > GS_Classes[b.Class] end); end; end
-		if ( SortType == "Date" ) then GS_HighlightedColNum = 9; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return a.Date > b.Date end); else table.sort(GSX_DataBase, function(a, b) return a.Date < b.Date end); end; end
-		if ( SortType == "Race" ) then GS_HighlightedColNum = 6; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return GS_Races[a.Race] < GS_Races[b.Race] end); else table.sort(GSX_DataBase, function(a, b) return GS_Races[a.Race] > GS_Races[b.Race] end); end; end
+		if ( SortType == "Class" ) then GS_HighlightedColNum = 7; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return (GS_Classes[a.Class] or a.Class or "") < (GS_Classes[b.Class] or b.Class or "") end); else table.sort(GSX_DataBase, function(a, b) return (GS_Classes[a.Class] or a.Class or "") > (GS_Classes[b.Class] or b.Class or "") end); end; end
+		if ( SortType == "Date" ) then GS_HighlightedColNum = 9; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return (a.Date or 0) > (b.Date or 0) end); else table.sort(GSX_DataBase, function(a, b) return (a.Date or 0) < (b.Date or 0) end); end; end
+		if ( SortType == "Race" ) then GS_HighlightedColNum = 6; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return (GS_Races[a.Race] or a.Race or "") < (GS_Races[b.Race] or b.Race or "") end); else table.sort(GSX_DataBase, function(a, b) return (GS_Races[a.Race] or a.Race or "") > (GS_Races[b.Race] or b.Race or "") end); end; end
 		if ( SortType == "Scanned" ) then GS_HighlightedColNum = 10; if ( GS_SortDirection[SortType] == 1 ) then table.sort(GSX_DataBase, function(a, b) return a.Scanned < b.Scanned end); else table.sort(GSX_DataBase, function(a, b) return a.Scanned > b.Scanned end); end; end
 	end		
 	if ( GS_StartPage > (#(GSX_DataBase))) then GS_StartPage = GS_StartPage - 25; end
@@ -1067,14 +1099,15 @@ function GearScore_DisplayDatabase(Group, SortType, Auto, GSX_StartPage)
     	--if ( Red ) and ( Green ) and ( Blue ) then
     		Recount = Recount + 1
     		if ( v.Faction == "H" ) then FactionColor = "|cff"..string.format("%02x%02x%02x", 1 * 255, 0 * 255, 0 * 255); else  FactionColor = "|cff"..string.format("%02x%02x%02x", 0 , 162, 255); end   
-  			ColorString1 = "|cff"..string.format("%02x%02x%02x", GS_ClassInfo[GS_Classes[v.Class]].Red * 255, GS_ClassInfo[GS_Classes[v.Class]].Green * 255, GS_ClassInfo[GS_Classes[v.Class]].Blue * 255)
-  			local NowDate, NoWRed, NowGreen, NowBlue = GearScore_GetDate(v.Date) 
+  			local cInfo = (v.Class and GS_Classes[v.Class] and GS_ClassInfo[GS_Classes[v.Class]]) or GS_ClassInfo["Warrior"] or { Red = 1, Green = 1, Blue = 1 }
+  			ColorString1 = "|cff"..string.format("%02x%02x%02x", cInfo.Red * 255, cInfo.Green * 255, cInfo.Blue * 255)
+  			local NowDate, NoWRed, NowGreen, NowBlue = GearScore_GetDate(v.Date or 0) 
 --  			print(NowDate, NoWRed, NowGreen, NowBlue)
 			ColorStringDate = "|cff"..string.format("%02x%02x%02x", NoWRed * 255, NowGreen * 255, NowBlue * 255) 
 --			ColorStringDate..NowDate
-			local Red, Green, Blue = GearScore_GetQuality(v.GearScore) 
+			local Red, Green, Blue = GearScore_GetQuality(v.GearScore or 0) 
 			ColorString2 = "|cff"..string.format("%02x%02x%02x", Red * 255, Blue * 255, Green * 255)
-    	   	tooltip:AddLine(Recount, ColorString2..v.GearScore, ColorString1..v.Name, v.Average, ColorString1..v.Level, ColorString1..GS_Races[v.Race], ColorString1..GS_Classes[v.Class], FactionColor.."<"..v.Guild..">", ColorStringDate..NowDate, v.Scanned)
+    	   	tooltip:AddLine(Recount, ColorString2..(v.GearScore or 0), ColorString1..(v.Name or "Unknown"), v.Average or 0, ColorString1..(v.Level or 80), ColorString1..(GS_Races[v.Race] or v.Race or "Unknown"), ColorString1..(GS_Classes[v.Class] or v.Class or "Unknown"), FactionColor.."<"..(v.Guild or "*")..">", ColorStringDate..NowDate, v.Scanned or "Unknown")
     	   	if ( i >= ( GS_StartPage + 25 ) ) then break; end
        	--else
 		  -- print(v.Name, "doesn't have a GearScore!") 
@@ -1144,7 +1177,7 @@ function GearScore_HideDatabase(erase)
 
 	if ( Group == "Guild" ) then
 	GuildRoster(); for i = 1, GetNumGuildMembers(1) do	if ( GS_Data[GetRealmName()].Players[GetGuildRosterInfo(i)] ) then GSL_DataBase[count] = GS_Data[GetRealmName()].Players[GetGuildRosterInfo(i)]; count = count + 1; end; end; end
- if ( Group == "Search" ) then count = 0; for i,v in pairs(GS_Data[GetRealmName()].Players) do local DataString = tostring(v.GearScore..v.Name..v.Level..v.Guild..GS_Classes[v.Class]..GS_Races[v.Race]); if string.find(strlower(DataString), strlower(GS_SearchXBox:GetText())) then count = count + 1; GSL_DataBase[count] = v; end; end; end
+ if ( Group == "Search" ) then count = 0; for i,v in pairs(GS_Data[GetRealmName()].Players) do local DataString = tostring((v.GearScore or 0)..(v.Name or "")..(v.Level or "")..(v.Guild or "")..(GS_Classes[v.Class] or "")..(GS_Races[v.Race] or "")); if string.find(strlower(DataString), strlower(GS_SearchXBox:GetText())) then count = count + 1; GSL_DataBase[count] = v; end; end; end
     if ( Group == "Friends" ) then GuildRoster(); for i = 1, GetNumFriends(1) do	if ( GS_Data[GetRealmName()].Players[GetFriendInfo(i)] ) then GSL_DataBase[count] = GS_Data[GetRealmName()].Players[GetFriendInfo(i)]; count = count + 1; end; end; end
 	
 	if Group == "All" then GSDatabaseInfoString:SetText("Database: "..count.." entries. (Approx "..floor(0.8372131704586988304093567251462 * count).."Kb)"); GS_Settings["DatabaseSize"] = count;
@@ -1223,8 +1256,8 @@ function GearScore_DatabaseOnClick(Event, Cell, Misc, Button)
 	--print(LineCount)
 	if ( Cell["_line"] > 2 ) and ( Cell["_column"] == 3 ) and ( GSX_DataBase[Cell["_line"]-2] ) and ( Cell["_line"] ~= 28 ) then --GearScore_Send(GSX_DataBase[Cell["_line"]-2+GS_StartPage].Name, "ALL"); 
 	GearScore_DisplayUnit(GSX_DataBase[Cell["_line"]-2+GS_StartPage].Name); return; end
-	if ( Cell["_line"] > 2 ) and ( Cell["_column"] == 6 ) and ( GSX_DataBase[Cell["_line"]-2] ) then GS_SearchXBox:SetText(GS_Races[(GSX_DataBase[Cell["_line"]-2+GS_StartPage].Race)]); GearScore_HideDatabase(); GearScore_DisplayDatabase("Search"); return; end
-	if ( Cell["_line"] > 2 ) and ( Cell["_column"] == 7 ) and ( GSX_DataBase[Cell["_line"]-2] ) then GS_SearchXBox:SetText(GS_Classes[(GSX_DataBase[Cell["_line"]-2+GS_StartPage].Class)]); GearScore_HideDatabase(); GearScore_DisplayDatabase("Search"); return; end
+	if ( Cell["_line"] > 2 ) and ( Cell["_column"] == 6 ) and ( GSX_DataBase[Cell["_line"]-2] ) then local rVal = GSX_DataBase[Cell["_line"]-2+GS_StartPage].Race; GS_SearchXBox:SetText(GS_Races[rVal] or rVal or ""); GearScore_HideDatabase(); GearScore_DisplayDatabase("Search"); return; end
+	if ( Cell["_line"] > 2 ) and ( Cell["_column"] == 7 ) and ( GSX_DataBase[Cell["_line"]-2] ) then local cVal = GSX_DataBase[Cell["_line"]-2+GS_StartPage].Class; GS_SearchXBox:SetText(GS_Classes[cVal] or cVal or ""); GearScore_HideDatabase(); GearScore_DisplayDatabase("Search"); return; end
 	if ( Cell["_line"] > 2 ) and ( Cell["_column"] == 8 ) and ( GSX_DataBase[Cell["_line"]-2] ) then GS_SearchXBox:SetText((GSX_DataBase[Cell["_line"]-2+GS_StartPage].Guild)); GearScore_HideDatabase(); GearScore_DisplayDatabase("Search"); return; end
 --tooltip:AddHeader('#', 'GearScore', '  Name ', "iLevel", 'Level', '  Race   ', ' Class   ', 'Date'); tooltip:AddSeparator(1, 1, 1, 1)
 end
