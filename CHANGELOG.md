@@ -1,4 +1,4 @@
-# 📋 Registro de Cambios — WoWPeru_GearScore
+# 📋 Registro de Cambios — ProjectJaina_GearScore
 
 ### [3.1.16-WP] — 2026-10-05
 - **Monorepositorio Unificado:** Fusión de `GearScore` (3.1.16) y `BonusScanner` (5.3) en un único repositorio oficial.

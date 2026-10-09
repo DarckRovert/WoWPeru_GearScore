@@ -1,24 +1,24 @@
-# 🇵🇪 WoW Perú — GearScore Suite (v3.1.16-WP + BonusScanner 5.3)
+# 🇵🇪 Project Jaina — GearScore Suite (v3.1.16-WP + BonusScanner 5.3)
 
 **Versión:** 3.1.16-WP  
 **Autores Originales:** Mirrikat45 (GearScore) & Tristanian (BonusScanner)  
-**Mantenimiento & Empaquetado:** DarckRovert & WoW Perú Staff  
-**Servidor Destino:** [WoW Perú](https://wow-peru.lat/) — Reino Andino  
+**Mantenimiento & Empaquetado:** DarckRovert & Project Jaina Staff  
+**Servidor Destino:** [Project Jaina](https://wow-peru.lat/) — Reino Andino  
 **Entorno de Ejecución:** World of Warcraft 3.3.5a (Build 12340) | Lua 5.1  
-**Repositorio Oficial:** [DarckRovert/WoWPeru_GearScore](https://github.com/DarckRovert/WoWPeru_GearScore)  
+**Repositorio Oficial:** [DarckRovert/ProjectJaina_GearScore](https://github.com/DarckRovert/ProjectJaina_GearScore)  
 
 ---
 
 [![WoW Client](https://img.shields.io/badge/WoW%20Client-3.3.5a%20(Build%2012340)-blue.svg)](https://wow-peru.lat/)
 [![Servidor](https://img.shields.io/badge/Servidor-WoW%20Perú-gold.svg)](https://wow-peru.lat/)
-[![Version](https://img.shields.io/badge/version-3.1.16--WP-brightgreen.svg)](https://github.com/DarckRovert/WoWPeru_GearScore/releases)
+[![Version](https://img.shields.io/badge/version-3.1.16--WP-brightgreen.svg)](https://github.com/DarckRovert/ProjectJaina_GearScore/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
 ## 🌟 Descripción General
 
-**WoWPeru_GearScore** es la suite unificada de inspección de equipo para WoW 3.3.5a, integrando en un solo repositorio **GearScore** y su motor de análisis de bonificaciones **BonusScanner**.
+**ProjectJaina_GearScore** es la suite unificada de inspección de equipo para WoW 3.3.5a, integrando en un solo repositorio **GearScore** y su motor de análisis de bonificaciones **BonusScanner**.
 
 Permite evaluar con precisión el nivel de equipamiento de tu personaje y de jugadores inspeccionados, asignando puntuaciones ponderadas según ranura de objeto, nivel de objeto (iLvl), calidad y estadísticas.
 

@@ -1,7 +1,7 @@
-# 🤖 Directrices de Ingeniería y Restricciones para Agentes IA — WoWPeru_GearScore
+# 🤖 Directrices de Ingeniería y Restricciones para Agentes IA — ProjectJaina_GearScore
 
-**Addon:** `WoWPeru_GearScore`  
-**Repositorio Oficial:** [https://github.com/DarckRovert/WoWPeru_GearScore](https://github.com/DarckRovert/WoWPeru_GearScore)  
+**Addon:** `ProjectJaina_GearScore`  
+**Repositorio Oficial:** [https://github.com/DarckRovert/ProjectJaina_GearScore](https://github.com/DarckRovert/ProjectJaina_GearScore)  
 **Motor Gráfico y Runtime:** WoW 3.3.5a WotLK (Build 12340) / Lua 5.1 (Blizzard VM)
 
 ---

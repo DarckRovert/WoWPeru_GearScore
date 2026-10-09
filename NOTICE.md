@@ -1,6 +1,6 @@
-# Aviso Legal y Créditos de Código de Terceros — WoWPeru_GearScore
+# Aviso Legal y Créditos de Código de Terceros — ProjectJaina_GearScore
 
-Este repositorio forma parte del catálogo comunitario de soporte para el ecosistema **WoW Perú - Reino Andino**.
+Este repositorio forma parte del catálogo comunitario de soporte para el ecosistema **Project Jaina - Reino Andino**.
 Agrupa y unifica la suite de **GearScore 3.1.16** y su biblioteca de inspección aritmética **BonusScanner 5.3** para el cliente World of Warcraft 3.3.5a (Build 12340).
 
 ---
@@ -16,5 +16,5 @@ Agrupa y unifica la suite de **GearScore 3.1.16** y su biblioteca de inspección
 ## 2. Propósito y Alcance
 
 1. GearScore depende funcionalmente de `BonusScanner` para realizar el cálculo de gemas, encantamientos y atributos acumulativos sin provocar demoras en el hilo principal del cliente.
-2. WoW Perú distribuye ambos componentes unificados en este repositorio para asegurar que ningún jugador instale GearScore de manera huérfana, eliminando errores de dependencia rota.
+2. Project Jaina distribuye ambos componentes unificados en este repositorio para asegurar que ningún jugador instale GearScore de manera huérfana, eliminando errores de dependencia rota.
 3. El uso es completamente libre y no comercial.

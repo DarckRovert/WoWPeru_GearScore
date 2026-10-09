@@ -1,4 +1,4 @@
-﻿## Interface: 30200
+## Interface: 30200
 ## X-Curse-Packaged-Version: LibCompress r40-release
 ## X-Curse-Project-Name: LibCompress
 ## X-Curse-Project-ID: libcompress
