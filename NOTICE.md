@@ -1,6 +1,6 @@
 # Aviso Legal y Créditos de Código de Terceros — ProjectJaina_GearScore
 
-Este repositorio forma parte del catálogo comunitario de soporte para el ecosistema **Project Jaina - Reino Andino**.
+Este repositorio forma parte del catálogo comunitario de soporte para el ecosistema **Project Jaina - Theramore**.
 Agrupa y unifica la suite de **GearScore 3.1.16** y su biblioteca de inspección aritmética **BonusScanner 5.3** para el cliente World of Warcraft 3.3.5a (Build 12340).
 
 ---

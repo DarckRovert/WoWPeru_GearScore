@@ -3,14 +3,14 @@
 **Versión:** 3.1.16-WP  
 **Autores Originales:** Mirrikat45 (GearScore) & Tristanian (BonusScanner)  
 **Mantenimiento & Empaquetado:** DarckRovert & Project Jaina Staff  
-**Servidor Destino:** [Project Jaina](https://wow-peru.lat/) — Reino Andino  
+**Servidor Destino:** [Project Jaina](https://darckrovert.github.io/ProjectJaina_Web/) — Theramore  
 **Entorno de Ejecución:** World of Warcraft 3.3.5a (Build 12340) | Lua 5.1  
 **Repositorio Oficial:** [DarckRovert/ProjectJaina_GearScore](https://github.com/DarckRovert/ProjectJaina_GearScore)  
 
 ---
 
-[![WoW Client](https://img.shields.io/badge/WoW%20Client-3.3.5a%20(Build%2012340)-blue.svg)](https://wow-peru.lat/)
-[![Servidor](https://img.shields.io/badge/Servidor-WoW%20Perú-gold.svg)](https://wow-peru.lat/)
+[![WoW Client](https://img.shields.io/badge/WoW%20Client-3.3.5a%20(Build%2012340)-blue.svg)](https://darckrovert.github.io/ProjectJaina_Web/)
+[![Servidor](https://img.shields.io/badge/Servidor-WoW%20Perú-gold.svg)](https://darckrovert.github.io/ProjectJaina_Web/)
 [![Version](https://img.shields.io/badge/version-3.1.16--WP-brightgreen.svg)](https://github.com/DarckRovert/ProjectJaina_GearScore/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
